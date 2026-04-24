@@ -11,10 +11,18 @@ rec {
         inherit (source) year month day;
       }
     else if builtins.hasAttr "lastModifiedDate" source then
+      let
+        toInt =
+          s:
+          if builtins.substring 0 1 s == "0" then
+            builtins.fromJSON (builtins.substring 1 1 s)
+          else
+            builtins.fromJSON s;
+      in
       {
-        year = builtins.fromJSON (builtins.substring 0 4 source.lastModifiedDate);
-        month = builtins.fromJSON (builtins.substring 4 2 source.lastModifiedDate);
-        day = builtins.fromJSON (builtins.substring 6 2 source.lastModifiedDate);
+        year = toInt (builtins.substring 0 4 source.lastModifiedDate);
+        month = toInt (builtins.substring 4 2 source.lastModifiedDate);
+        day = toInt (builtins.substring 6 2 source.lastModifiedDate);
       }
     else
       throw "expected either { year, month, day } or an attrset with lastModifiedDate";
