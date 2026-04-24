@@ -56,6 +56,8 @@ rec {
     in
     result
     // {
-      metadata = result.metadata // { festival = null; };
+      metadata = result.metadata // {
+        festival = null;
+      };
     };
 }
