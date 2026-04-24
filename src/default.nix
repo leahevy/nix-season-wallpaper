@@ -5,7 +5,7 @@
 }:
 let
   utils = import ./utils.nix { inherit lib; };
-  dates = import ./dates.nix { inherit utils lib; };
+  dates = import ./dates.nix { inherit utils; };
   config = import ./config.nix {
     inherit utils;
     configRoot = wallpapersSrc;

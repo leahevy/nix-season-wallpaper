@@ -1,4 +1,4 @@
-{ utils, lib }:
+{ utils }:
 rec {
   inherit (utils) require;
 
@@ -12,9 +12,9 @@ rec {
       }
     else if builtins.hasAttr "lastModifiedDate" source then
       {
-        year = lib.strings.toInt (builtins.substring 0 4 source.lastModifiedDate);
-        month = lib.strings.toInt (builtins.substring 4 2 source.lastModifiedDate);
-        day = lib.strings.toInt (builtins.substring 6 2 source.lastModifiedDate);
+        year = builtins.fromJSON (builtins.substring 0 4 source.lastModifiedDate);
+        month = builtins.fromJSON (builtins.substring 4 2 source.lastModifiedDate);
+        day = builtins.fromJSON (builtins.substring 6 2 source.lastModifiedDate);
       }
     else
       throw "expected either { year, month, day } or an attrset with lastModifiedDate";
