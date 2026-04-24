@@ -12,9 +12,9 @@ rec {
       }
     else if builtins.hasAttr "lastModifiedDate" source then
       {
-        year = builtins.fromJSON (builtins.substring 0 4 source.lastModifiedDate);
-        month = builtins.fromJSON (builtins.substring 4 2 source.lastModifiedDate);
-        day = builtins.fromJSON (builtins.substring 6 2 source.lastModifiedDate);
+        year = builtins.substring 0 4 source.lastModifiedDate;
+        month = builtins.substring 4 2 source.lastModifiedDate;
+        day = builtins.substring 6 2 source.lastModifiedDate;
       }
     else
       throw "expected either { year, month, day } or an attrset with lastModifiedDate";
