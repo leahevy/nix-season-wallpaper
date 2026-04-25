@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+die() {
+  echo "error: $*" >&2
+  exit 1
+}
+
+year="$((10#$(date +%Y)))"
+month="$((10#$(date +%m)))"
+day="$((10#$(date +%d)))"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --year|--month|--day)
+      [[ $# -ge 2 ]] || die "missing value for $1"
+      [[ -n "${2-}" ]] || die "empty value for $1"
+      [[ "$2" =~ ^[0-9]+$ ]] || die "non-numeric value for $1: $2"
+      case "$1" in
+        --year) year="$2" ;;
+        --month) month="$2" ;;
+        --day) day="$2" ;;
+      esac
+      shift 2
+      ;;
+    *)
+      die "unknown option: $1"
+      ;;
+  esac
+done
+
+apply_expr="f: f { year = ${year}; month = ${month}; day = ${day}; }"
+cmd=(nix eval --json .#resolveDailyWallpaper --apply "$apply_expr")
+echo "year: ${year}"
+echo "month: ${month}"
+echo "day: ${day}"
+echo
+exec "${cmd[@]}"
