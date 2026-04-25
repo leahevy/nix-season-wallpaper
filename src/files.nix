@@ -78,4 +78,22 @@ rec {
       name = fileInfo.relativeName;
       extension = fileInfo.extension;
     };
+
+  fallback =
+    let
+      key = "fallback";
+      sourceFile =
+        sourceWallpaperFiles.${key}
+          or (throw "fallback wallpaper not found in ${toString sourceWallpaperDirectory}");
+      widescreenResult = buildImageResult sourceWallpaperDirectory sourceFile "widescreen";
+      normalResult =
+        if builtins.hasAttr key processedWallpaperFiles then
+          buildImageResult processedWallpaperDirectory processedWallpaperFiles.${key} "normal"
+        else
+          widescreenResult;
+    in
+    {
+      widescreen = widescreenResult;
+      normal = normalResult;
+    };
 }

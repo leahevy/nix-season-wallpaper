@@ -37,4 +37,5 @@ in
 {
   inherit (seasonal) resolveWallpaperBySeason;
   inherit (daily) resolveDailyWallpaper;
+  inherit (files) fallback;
 }

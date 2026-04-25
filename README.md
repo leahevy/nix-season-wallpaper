@@ -5,6 +5,7 @@ Nix flake that resolves a wallpaper for a given date (based on season or random)
 ## Exports
 - `resolveWallpaperBySeason`: seasonal resolver (festivals + numbering).
 - `resolveDailyWallpaper`: deterministic daily rotation.
+- `fallback`: direct fallback wallpaper (attrset with `normal` + `widescreen`).
 
 Both functions accept a date attrset: `{ year, month, day }`.
 

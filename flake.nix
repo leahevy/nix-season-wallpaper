@@ -28,6 +28,7 @@
       inherit (exports)
         resolveWallpaperBySeason
         resolveDailyWallpaper
+        fallback
         ;
     };
 }
