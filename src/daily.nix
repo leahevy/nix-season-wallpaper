@@ -25,14 +25,20 @@ rec {
     sourceWallpaperFiles
     ;
 
-  eligibleDailyWallpaperKeys = builtins.sort builtins.lessThan (
-    builtins.filter (key: key != "fallback") (builtins.attrNames sourceWallpaperFiles)
-  );
+  eligibleDailyWallpaperKeysForSeason =
+    season:
+    builtins.sort builtins.lessThan (
+      builtins.filter (key: key != "fallback" && (seasonFromWallpaperKey key) == season) (
+        builtins.attrNames sourceWallpaperFiles
+      )
+    );
 
   # Choose a deterministic daily wallpaper while avoiding adjacent repeats.
   dailyWallpaperKey =
     date:
     let
+      season = seasonOf date;
+      eligibleDailyWallpaperKeys = eligibleDailyWallpaperKeysForSeason season;
       count = builtins.length eligibleDailyWallpaperKeys;
       dayNumber = absoluteDayNumber date.year date.month date.day;
       step = if count <= 1 then 0 else count - 1;
