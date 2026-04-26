@@ -76,8 +76,85 @@ rec {
     else
       {
         inherit (festival) name;
+        inherit rawStart rawEnd;
         inherit start end;
       };
+
+  validateNoFestivalRawOverlap =
+    context: ranges:
+    let
+      step =
+        state: current:
+        if state.previous == null then
+          {
+            previous = current;
+            ok = true;
+          }
+        else
+          let
+            previous = state.previous;
+            check = require (
+              current.rawStart > previous.rawEnd
+            ) "festival overlap: season `${context.season}` `${previous.name}` `${current.name}`";
+          in
+          builtins.seq check {
+            previous = current;
+            ok = true;
+          };
+      endState = builtins.foldl' step {
+        previous = null;
+        ok = true;
+      } ranges;
+    in
+    endState.ok;
+
+  adjustFestivalPaddingOverlaps =
+    context: ranges:
+    let
+      step =
+        state: current:
+        if state.previous == null then
+          {
+            previous = current;
+            out = [ ];
+          }
+        else
+          let
+            previous = state.previous;
+            desiredStart = current.start;
+            trimmedPreviousEnd =
+              if desiredStart <= previous.end then
+                let
+                  candidate = desiredStart - 1;
+                in
+                if candidate < previous.rawEnd then previous.rawEnd else candidate
+              else
+                previous.end;
+            adjustedPrevious = previous // {
+              end = trimmedPreviousEnd;
+            };
+            startCandidate =
+              if desiredStart <= adjustedPrevious.end then adjustedPrevious.end + 1 else desiredStart;
+            adjustedCurrent =
+              if startCandidate > current.rawStart then
+                throw "festival padding overlap: season `${context.season}` `${previous.name}` `${current.name}`"
+              else
+                current // { start = startCandidate; };
+            previousOk = require (
+              adjustedPrevious.end >= adjustedPrevious.start
+            ) "festival padding overlap: season `${context.season}` `${previous.name}` `${current.name}`";
+          in
+          builtins.seq previousOk {
+            previous = adjustedCurrent;
+            out = state.out ++ [ adjustedPrevious ];
+          };
+
+      endState = builtins.foldl' step {
+        previous = null;
+        out = [ ];
+      } ranges;
+    in
+    if endState.previous == null then [ ] else endState.out ++ [ endState.previous ];
 
   festiveRanges =
     context:
@@ -86,10 +163,17 @@ rec {
         name: festival: handlers.resolveFestival context name festival
       ) context.config.festivals;
       ranges = map (festival: festivalRangeToPositions context festival) resolvedFestivals;
+      sortedRanges = builtins.sort (
+        left: right:
+        if left.rawStart == right.rawStart then
+          left.rawEnd < right.rawEnd
+        else
+          left.rawStart < right.rawStart
+      ) ranges;
+      rawOverlapCheck = validateNoFestivalRawOverlap context sortedRanges;
+      adjustedRanges = adjustFestivalPaddingOverlaps context sortedRanges;
     in
-    builtins.sort (
-      left: right: if left.start == right.start then left.end < right.end else left.start < right.start
-    ) ranges;
+    builtins.seq rawOverlapCheck adjustedRanges;
 
   festiveNameAt =
     context: dayPosition:
