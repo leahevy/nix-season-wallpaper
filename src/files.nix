@@ -7,6 +7,7 @@ rec {
   inherit (utils)
     lowercase
     splitExtension
+    seasonFromWallpaperKey
     ;
 
   sourceWallpaperDirectory = wallpapersRoot + /wallpapers/widescreen;
@@ -96,4 +97,43 @@ rec {
       widescreen = widescreenResult;
       normal = normalResult;
     };
+
+  buildWallpaper =
+    key:
+    let
+      sourceFile =
+        sourceWallpaperFiles.${key}
+          or (throw "wallpaper `${key}` not found in ${toString sourceWallpaperDirectory}");
+      widescreenResult = buildImageResult sourceWallpaperDirectory sourceFile "widescreen";
+      normalResult =
+        if builtins.hasAttr key processedWallpaperFiles then
+          buildImageResult processedWallpaperDirectory processedWallpaperFiles.${key} "normal"
+        else
+          widescreenResult;
+    in
+    {
+      inherit key;
+      widescreen = widescreenResult;
+      normal = normalResult;
+    };
+
+  wallpapers =
+    let
+      seasons = [
+        "winter"
+        "spring"
+        "summer"
+        "autumn"
+      ];
+      keys = builtins.attrNames sourceWallpaperFiles;
+      keysForSeason = season: builtins.filter (key: seasonFromWallpaperKey key == season) keys;
+      wallpapersForSeason =
+        season: map buildWallpaper (builtins.sort builtins.lessThan (keysForSeason season));
+    in
+    builtins.listToAttrs (
+      map (season: {
+        name = season;
+        value = wallpapersForSeason season;
+      }) seasons
+    );
 }

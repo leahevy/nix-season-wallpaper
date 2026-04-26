@@ -29,6 +29,7 @@
         resolveWallpaperBySeason
         resolveDailyWallpaper
         fallback
+        wallpapers
         ;
     };
 }
